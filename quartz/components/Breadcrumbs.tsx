@@ -91,14 +91,12 @@ export default ((opts?: Partial<BreadcrumbOptions>) => {
           curPathSegment = currentFile.frontmatter!.title
         }
 
-        currentPath += slugParts[i]
+        // Add current slug to full path
+        currentPath += slugParts[i] + "/"
 
         // Format and add current crumb
         const crumb = formatCrumb(curPathSegment, fileData.slug!, currentPath as SimpleSlug)
         crumbs.push(crumb)
-
-        // Add current slug to full path
-        currentPath += "/"
       }
 
       // Add current file to crumb (can directly use frontmatter title)
