@@ -19,6 +19,8 @@ cd -
 
 rm -rf sijiaoh.github.io/*
 cp -r public/* sijiaoh.github.io
+cp public/.nojekyll sijiaoh.github.io
+cp content/.gitattributes sijiaoh.github.io
 
 cd sijiaoh.github.io
 git add --all
