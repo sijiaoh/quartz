@@ -2,8 +2,7 @@
 
 set -eu
 
-# Skip build if CONTENT_DIR is not content
-if [ "${CONTENT_DIR}" != "content" ]; then
+if [ "${CI:-}" != "true" ]; then
   rm -rf content
   mkdir content
   cp -r ${CONTENT_DIR}/* content
