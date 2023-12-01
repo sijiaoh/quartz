@@ -36,7 +36,7 @@ async function mouseEnterHandler(
   if (thisUrl.toString() === targetUrl.toString()) return
 
   const contents = await fetch(`${targetUrl}`)
-    .then((res) => res.text())
+    .then((res) => res.status == 200 ? res.text() : null)
     .catch((err) => {
       console.error(err)
     })
