@@ -7,7 +7,7 @@ function Backlinks({ fileData, allFiles, displayClass }: QuartzComponentProps) {
   const backlinkFiles = allFiles.filter((file) => file.links?.includes(slug))
   return (
     <div class={`backlinks ${displayClass ?? ""}`}>
-      <h3>逆参照リンク</h3>
+      <h3><a href="/筆記/逆参照リンク" class="text-inherit">逆参照リンク</a></h3>
       <ul class="overflow">
         {backlinkFiles.length > 0 ? (
           backlinkFiles.map((f) => (
