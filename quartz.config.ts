@@ -10,7 +10,7 @@ const config: QuartzConfig = {
       provider: "plausible",
     },
     baseUrl: "sijiaoh.com",
-    ignorePatterns: ["private", "templates", ".obsidian"],
+    ignorePatterns: ["private", "templates", ".obsidian", "!(public_media)**/!(*.md)", "!(*.md)"],
     defaultDateType: "created",
     theme: {
       typography: {
