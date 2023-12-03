@@ -29,13 +29,6 @@ export const GitHubFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options> | 
           rehypeSlug,
           [
             rehypeAutolinkHeadings,
-            {
-              behavior: "append",
-              content: {
-                type: "text",
-                value: " §",
-              },
-            },
           ],
         ]
       } else {
