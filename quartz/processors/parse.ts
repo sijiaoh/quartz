@@ -27,7 +27,10 @@ export function createProcessor(ctx: BuildCtx): QuartzProcessor {
   }
 
   // MD AST -> HTML AST
-  processor = processor.use(remarkRehype, { allowDangerousHtml: true })
+  processor = processor.use(remarkRehype, {
+    allowDangerousHtml: true,
+    footnoteLabel: '脚注'
+  })
 
   // HTML AST -> HTML AST transforms
   for (const plugin of transformers.filter((p) => p.htmlPlugins)) {
