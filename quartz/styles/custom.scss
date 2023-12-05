@@ -6,6 +6,7 @@
   color: inherit;
 }
 
-.missing {
+.internal.missing {
   filter: brightness(0.75);
+  background-color: transparent;
 }
