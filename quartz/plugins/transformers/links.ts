@@ -79,7 +79,8 @@ export const CrawlLinks: QuartzTransformerPlugin<Partial<Options> | undefined> =
 
                   // url.resolve is considered legacy
                   // WHATWG equivalent https://nodejs.dev/en/api/v18/url/#urlresolvefrom-to
-                  const url = new URL(dest, `https://base.com/${curSlug}`)
+                  const path = curSlug.startsWith("/") ? curSlug.slice(1) : curSlug
+                  const url = new URL(dest, `https://base.com/${path}`)
                   const canonicalDest = url.pathname
                   let [destCanonical, _destAnchor] = splitAnchor(canonicalDest)
                   if (destCanonical.endsWith("/")) {
@@ -92,8 +93,7 @@ export const CrawlLinks: QuartzTransformerPlugin<Partial<Options> | undefined> =
                   outgoing.add(simple)
                   node.properties["data-slug"] = full
 
-                  const slug = full.startsWith("/") ? full.slice(1) as FullSlug : full
-                  if (!ctx.allSlugs.includes(slug)) {
+                  if (!ctx.allSlugs.includes(full)) {
                     node.properties.className.push("missing")
                   }
                 }
