@@ -91,6 +91,11 @@ export const CrawlLinks: QuartzTransformerPlugin<Partial<Options> | undefined> =
                   const simple = simplifySlug(full)
                   outgoing.add(simple)
                   node.properties["data-slug"] = full
+
+                  const slug = full.startsWith("/") ? full.slice(1) as FullSlug : full
+                  if (!ctx.allSlugs.includes(slug)) {
+                    node.properties.className.push("missing")
+                  }
                 }
 
                 // rewrite link internals if prettylinks is on

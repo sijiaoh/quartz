@@ -53,14 +53,18 @@ async function buildQuartz(argv: Argv, mut: Mutex, clientRefresh: () => void) {
   const filePaths = fps.map((fp) => joinSegments(argv.directory, fp) as FilePath)
   ctx.allSlugs = allFiles.map((fp) => slugifyFilePath(fp as FilePath))
 
-  const parsedFiles = await parseMarkdown(ctx, filePaths)
-  const filteredContent = filterContent(ctx, parsedFiles)
+  const frontmatterFiles = await parseMarkdown(ctx, filePaths, true)
+  const filteredFiles = filterContent(ctx, frontmatterFiles)
+  const filteredFilePaths = filteredFiles.map(([_, vfile]) => vfile.data.filePath!)
+  ctx.allSlugs = filteredFiles.map(([_, vfile]) => vfile.data.slug!)
+  const filteredContent = await parseMarkdown(ctx, filteredFilePaths)
+
   await emitContent(ctx, filteredContent)
   console.log(chalk.green(`Done processing ${fps.length} files in ${perf.timeSince()}`))
   release()
 
   if (argv.serve) {
-    return startServing(ctx, mut, parsedFiles, clientRefresh)
+    return startServing(ctx, mut, filteredContent, clientRefresh)
   }
 }
 
@@ -102,6 +106,12 @@ async function startServing(
       }
       clientRefresh()
       return
+    }
+
+    const frontmatterFiles = await parseMarkdown(ctx, [filePath], true)
+    const filteredFiles = filterContent(ctx, frontmatterFiles)
+    if (filteredFiles.length === 0) {
+      action = "delete"
     }
 
     if (action === "add" || action === "change") {

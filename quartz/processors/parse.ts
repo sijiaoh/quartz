@@ -117,7 +117,7 @@ export function createFileParser(ctx: BuildCtx, fps: FilePath[]) {
 
 const clamp = (num: number, min: number, max: number) =>
   Math.min(Math.max(Math.round(num), min), max)
-export async function parseMarkdown(ctx: BuildCtx, fps: FilePath[]): Promise<ProcessedContent[]> {
+export async function parseMarkdown(ctx: BuildCtx, fps: FilePath[], frontMatterOnly: boolean = false): Promise<ProcessedContent[]> {
   const { argv } = ctx
   const perf = new PerfTimer()
   const log = new QuartzLogger(argv.verbose)
@@ -147,7 +147,7 @@ export async function parseMarkdown(ctx: BuildCtx, fps: FilePath[]): Promise<Pro
 
     const childPromises: WorkerPromise<ProcessedContent[]>[] = []
     for (const chunk of chunks(fps, CHUNK_SIZE)) {
-      childPromises.push(pool.exec("parseFiles", [argv, chunk, ctx.allSlugs]))
+      childPromises.push(pool.exec("parseFiles", [argv, chunk, ctx.allSlugs, frontMatterOnly]))
     }
 
     const results: ProcessedContent[][] = await WorkerPromise.all(childPromises).catch((err) => {
