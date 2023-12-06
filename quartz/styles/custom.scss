@@ -6,6 +6,13 @@
   color: inherit;
 }
 
+.external span {
+  margin-left: 0.1rem;
+  margin-right: 0.1rem;
+  line-height: 100%;
+  vertical-align: text-bottom;
+}
+
 .internal.missing {
   filter: brightness(0.75);
   background-color: transparent;
