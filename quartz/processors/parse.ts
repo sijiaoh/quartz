@@ -42,8 +42,8 @@ export function createProcessor(ctx: BuildCtx): QuartzProcessor {
       tagName: "svg",
       properties: {
         xmlns: "http://www.w3.org/2000/svg",
-        height: "0.8rem",
-        width: "0.8rem",
+        height: "0.75rem",
+        width: "0.75rem",
         viewBox: "0 0 512 512",
         fill: "currentColor",
       },
