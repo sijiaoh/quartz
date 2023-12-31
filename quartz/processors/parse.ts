@@ -15,57 +15,51 @@ import { QuartzLogger } from "../util/log"
 import { trace } from "../util/trace"
 import { BuildCtx } from "../util/ctx"
 
-export type QuartzProcessor = Processor<MDRoot, HTMLRoot, void>
+export type QuartzProcessor = Processor<MDRoot, MDRoot, HTMLRoot>
 export function createProcessor(ctx: BuildCtx): QuartzProcessor {
   const transformers = ctx.cfg.plugins.transformers
 
-  // base Markdown -> MD AST
-  let processor = unified().use(remarkParse)
-
-  // MD AST -> MD AST transforms
-  for (const plugin of transformers.filter((p) => p.markdownPlugins)) {
-    processor = processor.use(plugin.markdownPlugins!(ctx))
-  }
-
-  // MD AST -> HTML AST
-  processor = processor.use(remarkRehype, {
-    allowDangerousHtml: true,
-    footnoteLabel: '脚注'
-  })
-
-  // Add external link icon.
-  processor = processor.use(rehypeExternalLinks, {
-    target: "_blank",
-    rel: ["noopener", "noreferrer", "nofollow"],
-    content: {
-      type: "element",
-      tagName: "svg",
-      properties: {
-        xmlns: "http://www.w3.org/2000/svg",
-        height: "0.75rem",
-        width: "0.75rem",
-        viewBox: "0 0 512 512",
-        fill: "currentColor",
-      },
-      children: [
-        {
+  return (
+    unified()
+      // base Markdown -> MD AST
+      .use(remarkParse)
+      // MD AST -> MD AST transforms
+      .use(
+        transformers
+          .filter((p) => p.markdownPlugins)
+          .flatMap((plugin) => plugin.markdownPlugins!(ctx)),
+      )
+      // MD AST -> HTML AST
+      .use(remarkRehype, { allowDangerousHtml: true, footnoteLabel: '脚注' })
+      // Add external link icon.
+      .use(rehypeExternalLinks, {
+        target: "_blank",
+        rel: ["noopener", "noreferrer", "nofollow"],
+        content: {
           type: "element",
-          tagName: "path",
+          tagName: "svg",
           properties: {
-            d: "M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z"
+            xmlns: "http://www.w3.org/2000/svg",
+            height: "0.75rem",
+            width: "0.75rem",
+            viewBox: "0 0 512 512",
+            fill: "currentColor",
           },
-          children: []
+          children: [
+            {
+              type: "element",
+              tagName: "path",
+              properties: {
+                d: "M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z"
+              },
+              children: []
+            }
+          ]
         }
-      ]
-    }
-  })
-
-  // HTML AST -> HTML AST transforms
-  for (const plugin of transformers.filter((p) => p.htmlPlugins)) {
-    processor = processor.use(plugin.htmlPlugins!(ctx))
-  }
-
-  return processor
+      })
+      // HTML AST -> HTML AST transforms
+      .use(transformers.filter((p) => p.htmlPlugins).flatMap((plugin) => plugin.htmlPlugins!(ctx)))
+  )
 }
 
 function* chunks<T>(arr: T[], n: number) {
@@ -120,12 +114,13 @@ export function createFileParser(ctx: BuildCtx, fps: FilePath[]) {
 
         // Text -> Text transforms
         for (const plugin of cfg.plugins.transformers.filter((p) => p.textTransform)) {
-          file.value = plugin.textTransform!(ctx, file.value)
+          file.value = plugin.textTransform!(ctx, file.value.toString())
         }
 
         // base data properties that plugins may use
-        file.data.slug = slugifyFilePath(path.posix.relative(argv.directory, file.path) as FilePath)
-        file.data.filePath = fp
+        file.data.filePath = file.path as FilePath
+        file.data.relativePath = path.posix.relative(argv.directory, file.path) as FilePath
+        file.data.slug = slugifyFilePath(file.data.relativePath)
 
         const ast = processor.parse(file)
         const newAst = await processor.run(ast, file)
@@ -145,7 +140,7 @@ export function createFileParser(ctx: BuildCtx, fps: FilePath[]) {
 
 const clamp = (num: number, min: number, max: number) =>
   Math.min(Math.max(Math.round(num), min), max)
-export async function parseMarkdown(ctx: BuildCtx, fps: FilePath[], frontMatterOnly: boolean = false): Promise<ProcessedContent[]> {
+export async function parseMarkdown(ctx: BuildCtx, fps: FilePath[]): Promise<ProcessedContent[]> {
   const { argv } = ctx
   const perf = new PerfTimer()
   const log = new QuartzLogger(argv.verbose)
@@ -175,7 +170,7 @@ export async function parseMarkdown(ctx: BuildCtx, fps: FilePath[], frontMatterO
 
     const childPromises: WorkerPromise<ProcessedContent[]>[] = []
     for (const chunk of chunks(fps, CHUNK_SIZE)) {
-      childPromises.push(pool.exec("parseFiles", [argv, chunk, ctx.allSlugs, frontMatterOnly]))
+      childPromises.push(pool.exec("parseFiles", [argv, chunk, ctx.allSlugs]))
     }
 
     const results: ProcessedContent[][] = await WorkerPromise.all(childPromises).catch((err) => {
