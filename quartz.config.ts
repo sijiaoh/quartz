@@ -3,7 +3,7 @@ import * as Plugin from "./quartz/plugins"
 
 const config: QuartzConfig = {
   configuration: {
-    pageTitle: "Sijiaohの電子庭園",
+    pageTitle: "Sijiaoh",
     enableSPA: true,
     enablePopovers: true,
     analytics: {
